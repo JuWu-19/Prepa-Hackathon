@@ -50,12 +50,14 @@ def possible_pair(type,interaction,n_spins):
 
 
 def feature_map_ansatz(parameter,n_spins,n_layer,entanglement_type='full', interaction_length=2, full_rotation='False'):
-    '''ansatz composed of y rotation followed by a trainable feature map
+    '''
+    ansatz composed of y rotation followed by a trainable feature map
     len(parameter)=[(1+2*full_rotation)*n_spins+len(int_list)]*n_layer
     '''
-	int_list=possible_pair(entanglement_type,interaction_length,n_spins)
-	count = 0
-	circuit = QuantumCircuit(n_spins)
+
+    int_list = possible_pair(entanglement_type, interaction_length,n_spins)
+    count = 0
+    circuit = QuantumCircuit(n_spins)
 
     for i in range(n_layer):
         #y-rotation
@@ -70,10 +72,22 @@ def feature_map_ansatz(parameter,n_spins,n_layer,entanglement_type='full', inter
 
         #trainable feature map
         for interaction in int_list:
-            for j in range(len(interaction_length)-1):
+            #for j in range(len(interaction_length)-1):
+            for j in range(interaction_length-1):
                 circuit.cx(interaction[j],interaction[j+1]%n_spins)
                 circuit.rz(parameter[count],interaction[-1]%n_spins)
                 count += 1
             for j in reversed(range(len(interaction)-1)):
                 circuit.cx(interaction[j],interaction[j+1]%n_spins)
     return circuit
+
+def main():
+    parameter = np.zeros(10000)
+    n_spins = 5
+    n_layer = 3
+    map_ansatz = feature_map_ansatz(parameter,n_spins,n_layer)
+    print(map_ansatz)
+
+
+if __name__=='__main__':
+    main()
