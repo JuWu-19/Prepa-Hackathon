@@ -2,12 +2,12 @@ from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister
 import itertools
 import numpy as np
 
-def possible_pair(type,interaction,n_spins):
+def possible_pair(int_type,interaction,n_spins):
 
     # give all possible list of ascending integers between  i and j
 
     List=[]
-    if type == 'linear':
+    if int_type == 'linear':
         for j in range(1,interaction+1):
             for i in range(n_spins-1):
                 if i+j>n_spins-1:
@@ -17,7 +17,7 @@ def possible_pair(type,interaction,n_spins):
                     a.append(i+k+1)
                 List.append(a)
 
-    elif type == 'circular':
+    elif int_type == 'circular':
 
         for j in range(1,interaction+1):
             for i in range(n_spins):
@@ -28,7 +28,8 @@ def possible_pair(type,interaction,n_spins):
                     a.append((i+k+1)%n_spins)
                 List.append(a)
 
-    elif type == 'full':
+    elif int_type == 'full':
+
         for i in range(n_spins):
             for j in range(i+1,n_spins):
                 for l in range(j-i):
@@ -50,12 +51,10 @@ def possible_pair(type,interaction,n_spins):
 
 
 def feature_map_ansatz(parameter,n_spins,n_layer,entanglement_type='full', interaction_length=2, full_rotation='False'):
-    '''
-    ansatz composed of y rotation followed by a trainable feature map
+    '''ansatz composed of y rotation followed by a trainable feature map
     len(parameter)=[(1+2*full_rotation)*n_spins+len(int_list)]*n_layer
     '''
-
-    int_list = possible_pair(entanglement_type, interaction_length,n_spins)
+    int_list=possible_pair(entanglement_type,interaction_length,n_spins)
     count = 0
     circuit = QuantumCircuit(n_spins)
 
@@ -70,24 +69,14 @@ def feature_map_ansatz(parameter,n_spins,n_layer,entanglement_type='full', inter
                 circuit.ry(parameter[count],j)
                 count = count +1
 
+
         #trainable feature map
         for interaction in int_list:
-            #for j in range(len(interaction_length)-1):
-            for j in range(interaction_length-1):
+            for j in range(len(interaction)-1):
                 circuit.cx(interaction[j],interaction[j+1]%n_spins)
-                circuit.rz(parameter[count],interaction[-1]%n_spins)
-                count += 1
+            circuit.rz(parameter[count],interaction[-1]%n_spins)
+            count += 1
             for j in reversed(range(len(interaction)-1)):
                 circuit.cx(interaction[j],interaction[j+1]%n_spins)
+        circuit.barrier()
     return circuit
-
-def main():
-    parameter = np.zeros(10000)
-    n_spins = 5
-    n_layer = 3
-    map_ansatz = feature_map_ansatz(parameter,n_spins,n_layer)
-    print(map_ansatz)
-
-
-if __name__=='__main__':
-    main()
