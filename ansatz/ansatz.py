@@ -40,9 +40,9 @@ def feature_map_ansatz(parameter,n_qubits,n_layer,entanglement_type='full', inte
 
             for j in range(len(interaction)-1):
                 circuit.cx(interaction[j],interaction[j+1]%n_qubits)
-                circuit.rz(parameter[count],interaction[-1]%n_qubits)
-                if not symmetric:
-                    count += 1
+            circuit.rz(parameter[count],interaction[-1]%n_qubits)
+            if not symmetric:
+                count += 1
             for j in reversed(range(len(interaction)-1)):
                 circuit.cx(interaction[j],interaction[j+1]%n_qubits)
 

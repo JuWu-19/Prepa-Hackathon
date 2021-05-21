@@ -47,17 +47,18 @@ def possible_pair(type,interaction,n_spins):
 
     return List
 
-def len_param(n_qubits,n_layer,interaction_length, entanglement_type ='full',feature_map=True,symmetric=False,full_rotation=False):
+def get_len_param(n_qubits,n_layer,interaction_length, entanglement_type ='full',symmetric=False,full_rotation=False):
     l=0
-    if feature_map:
-        if symmetric:
-            l = 2*n_layer
-        else:
-            l_int = len(possible_pair(entanglement_type,interaction_length,n_qubits))
-            l = (1+2*int(full_rotation))*n_qubits+l_int
-            l *= n_layer
 
+    if symmetric:
+        l = 2*n_layer
     else:
-        l=2**n_qubits
+        try:
+            l_int = len(possible_pair(entanglement_type,interaction_length,n_qubits))
+        except:
+            l_int = 1
+
+        l = (1+2*int(full_rotation))*n_qubits+l_int
+        l *= n_layer
 
     return l
