@@ -15,9 +15,18 @@ from qiskit.opflow.evolutions              import Suzuki, Trotter
 from qiskit.opflow.expectations  import PauliExpectation, AerPauliExpectation, MatrixExpectation
 
 # from qiskit.algorithms.optimizers.aqgd    import AQGD
-from algorithm.AQGD import AQGD
+from algorithms.AQGD import AQGD
 from ansatz.ansatz import feature_map_ansatz
 
+# Useful functions
+def projector_zero(n_qubits):
+
+	prj = (1/np.power(2,n_qubits))*(I+Z)
+
+	for a in range(n_qubits-1):
+		prj = prj^(I+Z)
+
+	return prj
 
 class VQE:
     def __init__(self,hamiltonian,n_qubits,instance, shots):
@@ -118,9 +127,10 @@ class VQE:
         return overlap, var_overlap
 
     def overlap(self,parameters, i):
+        #proj = self.projector(i)
 
         proj0=StateFn(TensoredOp([self.P0] * (self.n_qubits)),is_measurement = True)
-        proj = self.projector(i)
+        #proj = self.projector(i)
 
         out_product = CircuitStateFn(self.ansatz(parameters).inverse().compose(self.ansatz(self.optimal_parameters[str(i)])))
         braket = proj0 @ out_product
@@ -134,6 +144,20 @@ class VQE:
             var_overlap  = np.sqrt(variance/shots)
 
         return overlap, var_overlap
+    '''
+    def overlap(self,parameters,i):
+        prj_zero = StateFn(projector_zero(self.n_qubits), is_measurement=True)
+        wfn_circuits = CircuitStateFn(self.ansatz(parameters)+self.ansatz(self.optimal_parameters[str(i)])) # test pour l'ordre
+        braket = prj_zero @ wfn_circuits
+        grouped = PauliExpectation().convert(braket)
+        sampled_op = CircuitSampler(self.instance).convert(grouped)
+        overlap = sampled_op.eval().real
+        if (not self.instance.is_statevector):
+            variance = PauliExpectation().compute_variance(sampled_op).real
+            var_overlap  = np.sqrt(variance/shots)
+        print("New overlap")
+        return overlap, var_overlap
+    '''
 
     def projector(self,i):
         bit =bin(i)[2:]
